@@ -75,11 +75,12 @@ class LogInVC: UIViewController {
             }
             print("successfully signed in")
             // I got this from stack overfow because UIApplication.shared.keyWindow?.rootViewController? isnt working
-            guard let mainTabVC = UIApplication.shared.windows.filter {$0.isKeyWindow}.first?.rootViewController as? MainTabVC
-                else{
-                    print("main tab vc didnt get instantiated")
-                    return
-                }
+           // guard let mainTabVC = UIApplication.shared.windows.filter //{$0.isKeyWindow}.first?.rootViewController as? MainTabVC
+                UIApplication.shared.windows.filter {$0.isKeyWindow}.first?.rootViewController = MainTabVC()
+                //else{
+                    //print("main tab vc didnt get instantiated")
+                    //return
+                //}
             self.dismiss(animated: true, completion: nil)
         }
         

@@ -10,7 +10,7 @@ import UIKit
 import Firebase
 private let reuseIdentifier = "Cell"
 private let headerIdentifier = "UserProfileHeaderCollectionViewCell"
-
+// shall I disbble landscape mode - not to rotate 
 class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, UserProfileHeaderDelegate {
     // pust these in constant files outside classes
     var UsersPostsRef = Database.database().reference().child("users_posts")
@@ -21,10 +21,13 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
     
     var user : User?
     var posts =  [Post]()
-  
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        print(" view will appear called for user profile vc!!!")
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        print("view did load called for user profile vc!!!")
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 
@@ -38,6 +41,7 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
         if (self.user == nil){
             fetchCurrentUserData()
         }
+        // should we do this on view did appear too?
         fetchPosts()
 
         // Do any additional setup after loading the view.
@@ -91,16 +95,6 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
         let header = self.collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: headerIdentifier, for: indexPath) as! UserProfileHeaderCollectionViewCell
         header.delegate = self
         
-       
-        /*guard let user = self.user else{
-            guard let userToLoadFromSearchVC = self.userToLoadFromSearchVC else{
-                return header
-            }
-            header.user = userToLoadFromSearchVC
-            navigationItem.title = userToLoadFromSearchVC.userName
-            return header
-        }*/
-           //self.user = user
         header.user = user
         navigationItem.title = user?.userName
            
@@ -121,15 +115,14 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
         }
         
         self.UsersPostsRef.child(uid).observe(.childAdded) { (snapshot) in
-            print(snapshot)
             let postId = snapshot.key
-            print(postId)
             Database.fetchPosts(with: postId) { (post) in
                 self.posts.append(post)
                 // FIXME - image flicker happens here because we are reloading table a lot of times. Sometimes, image.loadImages() takes a lot of times and when we do didset on the postcells again and again after sorting and all it udates the post cell with many images many times - race condition maybe?
                 self.posts.sort(by: {(post1, post2)->Bool in
                     return post1.creationDate > post2.creationDate
                 })
+                print("About to reload dataaa!!!!!!!!!!!!")
                 self.collectionView?.reloadData()
             }
                 
@@ -143,15 +136,12 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
         }
         print("current user is is \(currentUid)")
         Database.database().reference().child("users").child(currentUid).observeSingleEvent(of: .value) { (snapshot) in
-        print (snapshot)
         guard let dictionary = snapshot.value as? Dictionary<String, AnyObject> else{
             return
         }
         let uid = snapshot.key
         let user = User(uid: uid, dictionary: dictionary)
         self.user = user
-        print("Username is \(user.userName) ")
-        
         self.navigationItem.title = user.userName
         self.collectionView.reloadData()
     }
@@ -174,8 +164,8 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
             }
             let attributedString = NSMutableAttributedString(string: "\(numberOfFollowers!)\n", attributes: [NSAttributedString.Key.font :UIFont.boldSystemFont(ofSize: 14), NSAttributedString.Key.foregroundColor: UIColor(red: 17/255, green: 154/255, blue: 237/255, alpha: 1)])
             // naming - follower here
-            let postsAttributedString = NSMutableAttributedString(string: "Follower", attributes: [NSAttributedString.Key.font :UIFont.systemFont(ofSize: 14), NSAttributedString.Key.foregroundColor: UIColor.lightGray])
-            attributedString.append(postsAttributedString)
+            let followersAttributedString = NSMutableAttributedString(string: "Follower", attributes: [NSAttributedString.Key.font :UIFont.systemFont(ofSize: 14), NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+            attributedString.append(followersAttributedString)
             header.followersLabel.attributedText = attributedString
         }
         
@@ -188,8 +178,8 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
             }
             let attributedString = NSMutableAttributedString(string: "\(numberOfFollowing!)\n", attributes: [NSAttributedString.Key.font :UIFont.boldSystemFont(ofSize: 14), NSAttributedString.Key.foregroundColor: UIColor(red: 17/255, green: 154/255, blue: 237/255, alpha: 1)])
             // naming - following here
-            let postsAttributedString = NSMutableAttributedString(string: "Following", attributes: [NSAttributedString.Key.font :UIFont.systemFont(ofSize: 14), NSAttributedString.Key.foregroundColor: UIColor.lightGray])
-            attributedString.append(postsAttributedString)
+            let followingAttributedString = NSMutableAttributedString(string: "Following", attributes: [NSAttributedString.Key.font :UIFont.systemFont(ofSize: 14), NSAttributedString.Key.foregroundColor: UIColor.lightGray])
+            attributedString.append(followingAttributedString)
             header.followingLabel.attributedText = attributedString
         }
     }
@@ -198,7 +188,7 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
         guard let user  = header.user else{
             return
         }
-        if header.editProfileButton.titleLabel?.text == "Edit Profile"{
+        if header.editProfileButton.titleLabel?.text == "Edit Profile" {
             print ("edit Profile")
            
         }
@@ -217,16 +207,16 @@ class UserProfileVC: UICollectionViewController, UICollectionViewDelegateFlowLay
     }
     func handleFollowersTapped(for header: UserProfileHeaderCollectionViewCell) {
         print("handle followers tapped")
-        let followVC = FollowVc()
-        followVC.viewFollowers = true
+        let followVC = FollowLikeVc()
+        followVC.viewingMode = FollowLikeVc.ViewingMode(index : 1)
         followVC.uid = user?.uid
         navigationController?.pushViewController(followVC, animated: true)
     }
     
     func handleFollowingTapped(for header: UserProfileHeaderCollectionViewCell) {
         print("handle following tapped")
-        let followVC = FollowVc()
-        followVC.viewFollowing = true
+        let followVC = FollowLikeVc()
+        followVC.viewingMode = FollowLikeVc.ViewingMode(index :0)
         followVC.uid = user?.uid
         navigationController?.pushViewController(followVC, animated: true)
     }

@@ -48,7 +48,7 @@ class SearchVC: UITableViewController {
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let user = users[indexPath.row]
-        print("user name clicked is ", user.userName)
+        print("user name clicked is ", user.userName!)
         
         // create instance of user profile as
         let userProfileVC = UserProfileVC(collectionViewLayout: UICollectionViewFlowLayout())

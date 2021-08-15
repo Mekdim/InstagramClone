@@ -41,6 +41,7 @@ class SignUpVC: UIViewController, UIImagePickerControllerDelegate, UINavigationC
         tf.backgroundColor = UIColor(white:0.0, alpha:0.03)
         tf.borderStyle = .roundedRect
         tf.font = UIFont.systemFont(ofSize: 14)
+        tf.addTarget(self, action: #selector(formValidation), for: .editingChanged)
         return tf
     }()
     
@@ -50,6 +51,7 @@ class SignUpVC: UIViewController, UIImagePickerControllerDelegate, UINavigationC
         tf.backgroundColor = UIColor(white:0.0, alpha:0.03)
         tf.borderStyle = .roundedRect
         tf.font = UIFont.systemFont(ofSize: 14)
+        tf.addTarget(self, action: #selector(formValidation), for: .editingChanged)
         return tf
     }()
     let SignUpButton:UIButton = {
@@ -84,7 +86,7 @@ class SignUpVC: UIViewController, UIImagePickerControllerDelegate, UINavigationC
         photoButton.layer.borderColor = UIColor.black.cgColor
         photoButton.layer.borderWidth = 2
         photoButton.setImage(profilePicture.withRenderingMode(.alwaysOriginal), for: .normal)
-        // why self dismiss here ?
+        // why self dismiss here, picker.dismiss ?
         self.dismiss(animated: true, completion: nil)
     }
     @objc func handleSelectProfilePhoto (){
@@ -120,7 +122,7 @@ class SignUpVC: UIViewController, UIImagePickerControllerDelegate, UINavigationC
             guard let uploadData = profileImg.jpegData(compressionQuality: 0.3) else {
                 return
             }
-            // place image in firebase
+            // place image in firebase . is this always unique?
             let fileName = NSUUID().uuidString
             let storageReference = Storage.storage().reference().child("profile_images").child(fileName)
             storageReference.putData(uploadData, metadata: nil, completion: {(metadata, error) in

@@ -21,6 +21,7 @@ class FeedCell: UICollectionViewCell {
             guard let likes = post?.likes else{
                 return
             }
+            // why do this when post has user already?
             Database.fetchUser(with: ownerUid) { (user) in
                 self.profileImageView.loadImage(with: user.profileImageUrl)
                 self.userNameButton.setTitle(user.userName, for: .normal)
@@ -28,6 +29,7 @@ class FeedCell: UICollectionViewCell {
             }
             postImageView.loadImage(with: imageUrl)
             likesLabel.text = "\(likes)  likes"
+            configureLikeButton()
         }
     }
     let profileImageView: UIImageView = {
@@ -85,10 +87,15 @@ class FeedCell: UICollectionViewCell {
         button.tintColor = .black
         return button
     }()
-    let likesLabel : UILabel = {
+    lazy var  likesLabel : UILabel = {
         let label = UILabel()
         label.font = UIFont.boldSystemFont(ofSize: 12)
         label.text = "3 likes"
+        let likeTap = UITapGestureRecognizer(target: self, action: #selector(handleShowLikes))
+        likeTap.numberOfTapsRequired  = 1
+        label.isUserInteractionEnabled = true
+        label.addGestureRecognizer(likeTap)
+        
         return label
     }()
     let captionLabel : UILabel = {
@@ -128,6 +135,7 @@ class FeedCell: UICollectionViewCell {
         configureActionButtons()
         addSubview(savePostButton)
         savePostButton.anchor(top: postImageView.bottomAnchor, bottom: nil, left: nil, right: rightAnchor, paddingTop: 12, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, width: 20, height: 24)
+        
         addSubview(likesLabel)
         // -4 here for paddingtop
         likesLabel.anchor(top: likesButton.bottomAnchor, bottom: nil, left: leftAnchor, right: nil, paddingTop: -4, paddingBottom: 0, paddingLeft: 8, paddingRight: 0, width: 0, height: 0)
@@ -172,5 +180,11 @@ class FeedCell: UICollectionViewCell {
     }
     @objc func handleCommentTapped(){
         delegate?.handleCommentTapped(for: self)
+    }
+    @objc func handleShowLikes(){
+        delegate?.handleShowLikes(for: self)
+    }
+    func configureLikeButton(){
+        delegate?.handleConfigureLikeButton(for: self)
     }
 }

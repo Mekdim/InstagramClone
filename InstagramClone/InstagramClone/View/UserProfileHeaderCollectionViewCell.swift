@@ -41,7 +41,7 @@ class UserProfileHeaderCollectionViewCell: UICollectionViewCell {
         return label
         
     }()
-    
+    // change 5 to actual number of posts
     let postLabel : UILabel = {
         let label = UILabel()
         label.numberOfLines = 0
@@ -52,7 +52,8 @@ class UserProfileHeaderCollectionViewCell: UICollectionViewCell {
         label.attributedText = attributedString
         return label
     }()
-    // why lazy var? for gesture recognizer? 
+    // why lazy var? for gesture recognizer?
+    // It is for maybe addtarget 
     lazy var followersLabel : UILabel = {
        let label = UILabel()
        label.numberOfLines = 0

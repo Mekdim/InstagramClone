@@ -8,7 +8,9 @@
 
 import UIKit
 import Firebase
+
 class FollowCell: UITableViewCell {
+    // should be named followlike cell
      // Mark -- Property section
     var delegate : FollowCellDelegate?
     var user : User? {

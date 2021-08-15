@@ -52,6 +52,7 @@ class User{
         UserFollowingRef.child(currentuid).child(self.uid).removeValue()
         UserFollowerRef.child(uid).child(currentuid).removeValue()
     }
+    // the closure outlives the functions it is called in so @escape
     func checkIfUserIsFollowed(completion : @escaping(Bool)->()){
         guard let currentuid = Auth.auth().currentUser?.uid else{
             return

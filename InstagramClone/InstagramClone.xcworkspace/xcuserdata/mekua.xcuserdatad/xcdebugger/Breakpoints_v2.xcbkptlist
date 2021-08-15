@@ -14,8 +14,8 @@
             filePath = "InstagramClone/Controller/SignUpVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "112"
-            endingLineNumber = "112"
+            startingLineNumber = "114"
+            endingLineNumber = "114"
             landmarkName = "handleSignUp()"
             landmarkType = "7">
          </BreakpointContent>
@@ -30,8 +30,8 @@
             filePath = "InstagramClone/Controller/UserProfileVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "223"
-            endingLineNumber = "223"
+            startingLineNumber = "213"
+            endingLineNumber = "213"
             landmarkName = "handleFollowersTapped(for:)"
             landmarkType = "7">
          </BreakpointContent>

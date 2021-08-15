@@ -12,7 +12,10 @@ private let reuseIdentifier = "Cell"
 
 class FeedVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, FeedCellDelegate {
     
+    var usersLikesRef = Database.database().reference().child("users_likes")
+    
     var UserFeedRef = Database.database().reference().child("users_feed")
+    
     var posts = [Post]()
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -81,11 +84,11 @@ class FeedVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, Fe
         alertController.addAction(UIAlertAction(title: "Logout", style: .destructive, handler: { (_) in
             do{
                 try Auth.auth().signOut()
-                // prsent view controller
+                // prsent view controller -  change this to root view controller
                 let navController = UINavigationController(rootViewController: LogInVC())
                 self.present(navController, animated: true, completion: nil)
             } catch{
-                print ("Attempted to sigout but failed")
+                print ("Attempted to signout but failed")
             }
         }))
         // add cancel action 
@@ -97,7 +100,6 @@ class FeedVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, Fe
             return
         }
         UserFeedRef.child(currentId).observe(.childAdded) { (snapshot) in
-            print(snapshot)
             let postId = snapshot.key
             Database.fetchPosts(with: postId) { (post) in
                 self.posts.append(post)
@@ -128,12 +130,66 @@ class FeedVC: UICollectionViewController, UICollectionViewDelegateFlowLayout, Fe
     
     func handleLikeTapped(for cell: FeedCell) {
         print("like tapped")
+        guard let post = cell.post else{
+            return
+        }
+        if post.didLike{
+            
+           post.adjustLikes(addLike: false) { (likes) in
+                          
+                          cell.likesLabel.text = "\(likes) likes"
+            }
+            cell.likesButton.setImage(UIImage(named: "like_unselected"), for: .normal)
+            
+        } else {
+            
+            post.adjustLikes(addLike: true) { (likes) in
+                
+                cell.likesLabel.text = "\(likes) likes"
+            }
+            cell.likesButton.setImage(UIImage(named: "like_selected"), for: .normal)
+        }
+        
+        
     }
-    
+    func handleShowLikes(for cell : FeedCell){
+        guard let postId = cell.post?.postId else{
+            return
+        }
+        let followLikeVC = FollowLikeVc()
+        followLikeVC.postId = postId
+        followLikeVC.viewingMode = FollowLikeVc.ViewingMode(index :2)
+        navigationController?.pushViewController(followLikeVC, animated: true)
+    }
     func handleCommentTapped(for cell: FeedCell) {
-        print("comment tapped")
+        guard let postId = cell.post?.postId else{
+            return
+        }
+        let commentVC = CommentVc(collectionViewLayout: UICollectionViewFlowLayout())
+        commentVC.postId = postId
+        navigationController?.pushViewController(commentVC, animated: true)
     }
-
+    // makes this updates in batch updates in firestore and also use call backs as well
+    
+    // there is some bug because of sorting maybe
+    func handleConfigureLikeButton(for cell: FeedCell) {
+        guard let currentUid = Auth.auth().currentUser?.uid else{
+            return
+        }
+        guard let postId = cell.post?.postId else{
+            return
+        }
+        usersLikesRef.child(currentUid).observeSingleEvent(of: .value) { (snapshot) in
+            if snapshot.hasChild(postId){
+                print("user has liked post")
+                cell.post?.didLike = true
+                cell.likesButton.setImage(UIImage(named: "like_selected"), for: .normal)
+            } else{
+                print ("user hasnt like post")
+                
+            }
+        }
+    }
     
 
     

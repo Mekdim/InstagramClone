@@ -13,8 +13,9 @@ class MainTabVC: UITabBarController, UITabBarControllerDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.delegate = self
-        configureViewControllers()
         checkIfUserIsLoggedIn()
+        configureViewControllers()
+        
     }
     // configure view controllers in main tabbar vc
     func configureViewControllers(){
@@ -26,7 +27,8 @@ class MainTabVC: UITabBarController, UITabBarControllerDelegate {
         
         let notoficationsVC = constructNavController(unSelectedImage: UIImage(named: "like_unselected")!, selectedImage: UIImage(named: "like_selected")!, rootViewController:NotificationVC() )
         let userProfileVC = constructNavController(unSelectedImage: UIImage(named: "profile_unselected")!, selectedImage: UIImage(named: "profile_selected")!, rootViewController:UserProfileVC(collectionViewLayout: UICollectionViewFlowLayout() ) )
-        
+        // temporary class
+        let postLocationVC = PostLocationVC()
         // view controller to be added to tab bar
         viewControllers = [feedVC, searchVC, selectImageVC, notoficationsVC, userProfileVC]
         tabBar.tintColor = .black
@@ -41,6 +43,7 @@ class MainTabVC: UITabBarController, UITabBarControllerDelegate {
             return false
         }
         // why return true here and false up
+        // Aha this is just to show view controller’s tab should be selected or the other one to be active - so false
         return true
     }
     
@@ -59,9 +62,14 @@ class MainTabVC: UITabBarController, UITabBarControllerDelegate {
             // change this so this is the root controller
             DispatchQueue.main.async {
                 let navController = UINavigationController(rootViewController: LogInVC())
-                self.present(navController, animated: true, completion: nil)
+                print("user is logged out")
+                UIApplication.shared.windows.filter {$0.isKeyWindow}.first?.rootViewController = navController
+                   
+                //self.dismiss(animated: true, completion: nil)
+                //self.present(navController, animated: true, //completion: nil)
+                
             }
-            print("user is logged out")
+            
         }
     }
     // construct nav controller

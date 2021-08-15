@@ -9,36 +9,57 @@
 import UIKit
 import Firebase
 private let reuseIdentifier = "FollowCell"
-class FollowVc : UITableViewController, FollowCellDelegate{
-    
+class FollowLikeVc : UITableViewController, FollowCellDelegate{
+    enum ViewingMode : Int {
+        case following
+        case followers
+        case likes
+        init(index : Int){
+            switch index{
+                case 0 : self = .following
+                case 1 : self = .followers
+                case 2 : self = .likes
+                default : self = .following
+            }
+            
+        }
+    }
     
     // Mark -- Properties
     var viewFollowers  = false
     var viewFollowing = false
+    var postId : String?
+    var viewingMode : ViewingMode!
     var uid : String?
     var users = [User]()
     
     var UserFollowingRef = Database.database().reference().child("users_following")
     var UserFollowerRef = Database.database().reference().child("users_followers")
+     var PostsLikeRef = Database.database().reference().child("post_likes")
     var USERS_REF = Database.database().reference().child("users")
     
     override func viewDidLoad() {
+        print(viewingMode.rawValue)
         super.viewDidLoad()
         // register cell class
         tableView.register(FollowCell.self, forCellReuseIdentifier: reuseIdentifier)
         // configure nav controller
-        if viewFollowers{
-             navigationItem.title = "Followers"
+        if let viewingMode = self.viewingMode {
+            switch viewingMode {
+            case .following : navigationItem.title = "Following"
+            case .followers : navigationItem.title = "Followers"
+            case .likes : navigationItem.title = "likes"
+                
+            }
         }
-        else{
-            navigationItem.title = "Following"
-        }
+        
+        
         // clear separator lines
         tableView.separatorColor = .clear
         fetchUsers()
-        if let uid = self.uid {
-            print("the uid to follow or following is \(uid)")
-        }
+        //if let uid = self.uid {
+            //print("the uid to follow or following is \(uid)")
+       // }
         
     }
     // Mark -- UITableView
@@ -91,32 +112,56 @@ class FollowVc : UITableViewController, FollowCellDelegate{
     // Mark -- ApI
     
     func fetchUsers(){
-        guard let uid = self.uid else {
-            return
-        }
+        
         var ref : DatabaseReference!
-        if viewFollowers {
-            // fetch followers
-            ref  = UserFollowerRef
-        } else{
-            // fetch following
-            ref = UserFollowingRef
+        if let viewingMode = self.viewingMode {
+            switch viewingMode {
+            case .following : ref = UserFollowingRef
+            case .followers : ref  = UserFollowerRef
+                // make this likereference
+            case .likes :  ref = PostsLikeRef
+                
+            }
         }
-        // I didnt do childadded here because it listens everytime child is added even if it was removed - duplicate entry can show
-        ref.child(uid).observeSingleEvent(of: .value) { (snapshot) in
-            
-                guard let allObjects = snapshot.children.allObjects as? [DataSnapshot] else{
+        if let viewingMode = self.viewingMode {
+            switch viewingMode {
+            case .following, .followers:
+                guard let uid = self.uid else {
                     return
                 }
-                print(allObjects.count)
-                allObjects.forEach { (snapshot) in
-                    let userId = snapshot.key
-                    // using extension to avoid duplication to fetchuser
-                    Database.fetchUser(with: userId) { (user) in
-                        self.users.append(user)
-                        self.tableView.reloadData()
-                    }
+                ref.child(uid).observeSingleEvent(of: .value) { (snapshot) in
+                    
+                        guard let allObjects = snapshot.children.allObjects as? [DataSnapshot] else{
+                            return
+                        }
+                        allObjects.forEach { (snapshot) in
+                            let userId = snapshot.key
+                            // using extension to avoid duplication to fetchuser
+                            Database.fetchUser(with: userId) { (user) in
+                                self.users.append(user)
+                                self.tableView.reloadData()
+                            }
+                        }
                 }
+            case .likes :
+                ref.child(postId!).observeSingleEvent(of: .value) { (snapshot) in
+                    
+                        guard let allObjects = snapshot.children.allObjects as? [DataSnapshot] else{
+                            return
+                        }
+                        allObjects.forEach { (snapshot) in
+                            let userId = snapshot.key
+                            // using extension to avoid duplication to fetchuser
+                            Database.fetchUser(with: userId) { (user) in
+                                self.users.append(user)
+                                self.tableView.reloadData()
+                            }
+                        }
+                }
+            }
         }
+        
+        // I didnt do childadded here because it listens everytime child is added even if it was removed - duplicate entry can show
+        
     }
 }
